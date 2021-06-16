@@ -82,8 +82,28 @@ class TimeSeriesForestClassifier(
         output : array of shape = [n_test_instances]
         """
         proba = self.predict_proba(X)
-        return np.asarray([self.classes_[np.argmax(prob)] for prob in proba])
+        """ FB edit """
+        # return np.asarray([self.classes_[np.argmax(prob)] for prob in proba])
+        # return np.asarray([self.classes_[self._bias(prob, 0.65)] for prob in proba])
+        return np.asarray([self._pos_prob(prob) for prob in proba])
+        """ End of FB edit"""
 
+    """FB edit"""
+
+    def _bias(self, prob, thresh):
+        arg = np.argmax(prob)
+        if self.classes_[arg] == 1:
+            # print(f"positive prob = {prob[arg]}")
+            if prob[arg] < thresh:
+                args = np.where(self.classes_ == 0)
+                arg = args[0][0]
+        return arg
+
+    def _pos_prob(self, prob):
+        pos_arg = np.where(self.classes_ == 1)[0][0]
+        return prob[pos_arg]
+
+    """END FB edit"""
     def predict_proba(self, X):
         """Find probability estimates for each class for all cases in X.
 
